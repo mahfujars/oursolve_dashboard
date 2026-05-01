@@ -1,0 +1,119 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+  .seo-preview-box {
+    margin-top: 14px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    max-width: 600px;
+    font-family: Arial, sans-serif;
+  }
+  .seo-preview-box .label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #64748b;
+    margin-bottom: 10px;
+  }
+  .seo-preview-title {
+    font-size: 1.1rem;
+    color: #1a0dab;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+  .seo-preview-url {
+    font-size: .82rem;
+    color: #006621;
+    margin-bottom: 4px;
+  }
+  .seo-preview-desc {
+    font-size: .9rem;
+    color: #545454;
+    line-height: 1.5;
+  }
+  .char-counter {
+    display: inline-block;
+    font-size: .78rem;
+    font-weight: 600;
+    margin-left: 8px;
+    padding: 1px 7px;
+    border-radius: 20px;
+    vertical-align: middle;
+    background: #f1f5f9;
+    color: #64748b;
+  }
+  .char-counter.ok   { background: #dcfce7; color: #16a34a; }
+  .char-counter.warn { background: #fef9c3; color: #ca8a04; }
+  .char-counter.over { background: #fee2e2; color: #dc2626; }
+</style>
+{% endblock %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script>
+(function($) {
+  function addCounter(fieldId, max) {
+    var $field = $('#' + fieldId);
+    if (!$field.length) return;
+    var $label = $('label[for="' + fieldId + '"]');
+    var $counter = $('<span class="char-counter"></span>');
+    $label.append($counter);
+
+    function update() {
+      var len = $field.val().length;
+      var cls = len > max ? 'over' : len > max * 0.85 ? 'warn' : 'ok';
+      $counter.text(len + ' / ' + max).attr('class', 'char-counter ' + cls);
+    }
+    $field.on('input keyup', update);
+    update();
+  }
+
+  function buildPreview() {
+    var html = [
+      '<div class="seo-preview-box">',
+      '  <div class="label">Google Search Preview</div>',
+      '  <div class="seo-preview-title" id="sp-title"></div>',
+      '  <div class="seo-preview-url"  id="sp-url"></div>',
+      '  <div class="seo-preview-desc" id="sp-desc"></div>',
+      '</div>',
+    ].join('');
+    // inject after meta_description row
+    var $row = $('.form-row.field-meta_description');
+    if ($row.length) $row.after(html);
+  }
+
+  function updatePreview() {
+    var title = $('#id_meta_title').val() || $('#id_title').val() || 'Post Title';
+    var desc  = $('#id_meta_description').val() || $('#id_excerpt').val() || 'Post description…';
+    var slug  = $('#id_slug').val() || 'post-slug';
+
+    var displayTitle = title.length > 60 ? title.substring(0, 57) + '…' : title;
+    var displayDesc  = desc.length  > 160 ? desc.substring(0, 157) + '…' : desc;
+
+    $('#sp-title').text(displayTitle);
+    $('#sp-url').text('oursolve.com › blog › ' + slug);
+    $('#sp-desc').text(displayDesc);
+  }
+
+  $(document).ready(function() {
+    addCounter('id_meta_title', 60);
+    addCounter('id_meta_description', 160);
+    buildPreview();
+    updatePreview();
+    $(document).on(
+      'input keyup',
+      '#id_meta_title, #id_title, #id_meta_description, #id_excerpt, #id_slug',
+      updatePreview
+    );
+  });
+})(django.jQuery);
+</script>
+{% endblock %}

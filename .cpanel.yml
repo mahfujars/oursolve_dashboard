@@ -1,0 +1,15 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/oursolve/oursolve_dashboard/
+    - export PYTHON=/home/oursolve/virtualenv/oursolve_dashboard/3.11/bin/python3.11
+    - /bin/cp -r * $DEPLOYPATH
+    - mkdir -p $DEPLOYPATH/tmp
+    - mkdir -p $DEPLOYPATH/logs
+    - mkdir -p $DEPLOYPATH/media
+    - mkdir -p $DEPLOYPATH/staticfiles
+    - mkdir -p /home/oursolve/public_html/dashboard
+    - $PYTHON -m pip install -r $DEPLOYPATH/requirements.txt --quiet
+    - $PYTHON $DEPLOYPATH/manage.py migrate --noinput
+    - $PYTHON $DEPLOYPATH/manage.py collectstatic --noinput
+    - touch $DEPLOYPATH/tmp/restart.txt
